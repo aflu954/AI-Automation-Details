@@ -1,26 +1,104 @@
-# 04. LinkedIn Job Alert Automation
+Build a LinkedIn Job Alert Automation with n8n
 
-**Tools:** n8n · LinkedIn jobs
+## Client Scenario
 
-## Overview
-Collects new LinkedIn job postings that match chosen criteria and sends them as automatic job alerts.
+A recruitment agency helps software engineers find relevant jobs. Every morning, recruiters manually search LinkedIn for newly posted jobs, copy the listings into a spreadsheet, and send them to candidates.
 
-## How it works
-<!-- TODO: describe the trigger → main steps → output -->
-1. Trigger:
-2. Processing:
-3. Output:
+The client wants this process to be fully automated.
 
-## Files
-| File | Description |
-|---|---|
-| `workflow.json` | Workflow export — import into n8n via **Workflows → Import from File** |
-| `screenshot.png` | Workflow canvas |
+## Objective
 
-## Demo
-<!-- TODO: add an unlisted YouTube link to the demo video -->
+Build an n8n workflow that automatically scrapes the latest LinkedIn jobs using Apify and stores them in Google Sheets.
 
-## Setup
-1. Import `workflow.json`.
-2. Create your own credentials in n8n and attach them to the nodes (no credentials or API keys are stored in this repository).
-3. Activate the workflow and test it.
+## Requirements
+
+Your workflow must include the following nodes:
+
+* Webhook – Accept the following input:
+
+* Job Title (e.g., Python Developer)
+
+* Location (e.g., Bangladesh, Remote)
+
+* Number of Jobs
+
+* HTTP Request – Trigger an Apify LinkedIn Jobs Scraper actor using the Apify API.
+
+* HTTP Request – Check the actor run status until it completes.
+
+* HTTP Request – Retrieve the scraped dataset from Apify.
+
+* Process the returned data.
+
+Save the following information to *Google Sheets**:
+
+* Job Title
+
+* Company Name
+
+* Location
+
+* Posted Time
+
+* Job URL
+
+* Company URL (if available)
+
+## Example Input
+
+```json
+
+{
+
+"jobTitle": "Python Developer",
+
+"location": "Remote",
+
+"limit": 20
+
+}
+
+```
+
+## Expected Output
+
+A Google Sheet containing the latest LinkedIn job postings that match the requested criteria.
+
+## Constraints
+
+Use *Webhook** as the trigger.
+
+Use *HTTP Request** nodes for all interactions with Apify.
+
+* Do not use the Apify node.
+
+* The workflow must wait for the scraping job to finish before fetching the dataset.
+
+* Handle failed actor runs gracefully.
+
+## Bonus Challenge
+
+After saving the jobs to Google Sheets, use an AI node to generate a 2–3 sentence summary highlighting:
+
+* The most common hiring companies.
+
+* The most common locations.
+
+* Any noticeable hiring trends.
+
+## Deliverables
+
+* Exported n8n workflow (.json)
+
+* Google Sheet with scraped job data
+
+* A README explaining:
+
+* How to configure the Apify API token
+
+* How to trigger the webhook
+
+* Sample webhook payload
+
+* Screenshot of the final Google Sheet
+
