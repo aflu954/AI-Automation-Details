@@ -1,0 +1,72 @@
+{
+  "name": "Course Inquiry - Error Workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        -80
+      ],
+      "id": "484090cf-01eb-446e-8f09-3454f4551c56",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C4D56P0KX",
+          "mode": "list",
+          "cachedResultName": "support-escalation"
+        },
+        "text": "🚨 WORKFLOW ERROR | Course Inquiry Auto-Triage Bot | Check n8n execution for details.",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        -192,
+        -80
+      ],
+      "id": "953600dc-7d95-477f-b102-cb27b5242e92",
+      "name": "Send a message",
+      "webhookId": "b3d05b7e-5dd9-4cd8-8a51-f19059380811",
+      "credentials": {
+        "slackApi": {
+          "id": "mqZu268GZQePPy9O",
+          "name": "Slack account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "63c8ff9c-8282-4547-958a-f7ed9ce4ba1f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2b809c5a4a6d8b3efc3b6d310586f45f9056ec6a9a3d9e69b3a9d039bcf8651c"
+  },
+  "nodeGroups": [],
+  "id": "h8zizjqbbCEf3ytZ",
+  "tags": []
+}
