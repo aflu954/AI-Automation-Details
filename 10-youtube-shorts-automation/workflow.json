@@ -1,0 +1,280 @@
+{
+  "name": "YouTube Shorts Automation - 30 Sec",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -64
+      ],
+      "id": "0cba7054-d071-439d-bb74-f96fc97455ba",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "630ddb88-91b4-48b0-8e9f-d016650cf5e6",
+              "name": "topic",
+              "value": "5 Amazing Facts About Artificial Intelligence",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -224,
+        -64
+      ],
+      "id": "3cb637ec-fada-4e6b-8e86-193395ecaf61",
+      "name": "Edit Fields Set Topic"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9bf2a31-472f-4fc2-8200-e8641bc62cc6",
+              "name": "script",
+              "value": "={{$json.choices[0].message.content}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        192,
+        -64
+      ],
+      "id": "c7a90d7b-b918-489f-b3f3-b7998ddb5e46",
+      "name": "Edit Fields Extract Script"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"openai/gpt-oss-20b\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a 30-second YouTube Shorts script about {{$json.topic}}. Use simple Bangla and English mixed language (Banglish). Make it natural and easy to understand. Write exactly 60-75 words. Start with a strong hook. Output ONLY the finished script. No reasoning, no analysis, no notes, no timestamps.\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1000,\n  \"include_reasoning\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -16,
+        -64
+      ],
+      "id": "71003eea-5a60-410a-97b0-9c0dcf9a69ff",
+      "name": "HTTP Request Generate 30 Sec Script"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5000/tts",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('Edit Fields Extract Script').first().json.script }}\",\n  \"voice\": \"en-US-AriaNeural\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        400,
+        -64
+      ],
+      "id": "94a58aa3-fc03-4b40-a399-b0ad02d00ba0",
+      "name": "HTTP Request Free TTS - Edge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5000/video",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"audio\": \"{{$json.audio}}\",\n  \"title\": \"5 AMAZING FACTS ABOUT AI\",\n  \"image_url\": \"https://images.unsplash.com/photo-1677442136019-21780ecad995\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        880,
+        -80
+      ],
+      "id": "4118fd35-886c-4ffd-ae28-73fbb85a5a3b",
+      "name": "HTTP Request Create Shorts Video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $('HTTP Request Free TTS - Edge').first();\n\nif (!item.binary?.data) {\n  throw new Error('TTS থেকে audio binary পাওয়া যায়নি');\n}\n\nreturn [{\n  json: {\n    audioFileName: item.binary.data.fileName,\n    title: '5 AMAZING FACTS ABOUT AI',\n    image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995'\n  },\n  binary: {\n    data: item.binary.data\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -64
+      ],
+      "id": "7e2c60cc-fe3c-4426-be02-94fe122bd26d",
+      "name": "Code in JavaScript Prepare Video Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const video = $json.video;\n\nif (!video) {\n  throw new Error('video পাওয়া যায়নি');\n}\n\nconst buffer = Buffer.from(video, 'base64');\n\nreturn {\n  json: {\n    fileName: 'youtube-short.mp4',\n    mimeType: 'video/mp4',\n    fileSize: buffer.length\n  },\n  binary: {\n    data: await this.helpers.prepareBinaryData(\n      buffer,\n      'youtube-short.mp4',\n      'video/mp4'\n    )\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        -80
+      ],
+      "id": "39c0870b-bf83-4c19-94ac-c216651d5209",
+      "name": "Code in JavaScript Convert Video to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/.n8n-files/youtube-short.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        -80
+      ],
+      "id": "68199e86-c84c-4ec3-9df0-172daa301fe8",
+      "name": "Read/Write Files from Disk"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Set Topic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Set Topic": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Generate 30 Sec Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Extract Script": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Free TTS - Edge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Generate 30 Sec Script": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Extract Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Free TTS - Edge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript Prepare Video Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript Prepare Video Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Create Shorts Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Create Shorts Video": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript Convert Video to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript Convert Video to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b1a2bf89-a174-4bf9-b193-b6909942da4a",
+  "meta": {
+    "instanceId": "2b809c5a4a6d8b3efc3b6d310586f45f9056ec6a9a3d9e69b3a9d039bcf8651c"
+  },
+  "nodeGroups": [],
+  "id": "jEigwbpcvn8oPbkF",
+  "tags": []
+}
