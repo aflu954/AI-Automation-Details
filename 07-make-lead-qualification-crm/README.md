@@ -1,26 +1,81 @@
-# 07. AI-Powered Lead Qualification & CRM Automation
+Build an AI-Powered Lead Qualification & CRM Automation with Make.com
+Objective
+Build a complete automation in Make.com that captures new leads, qualifies them using AI, and stores the results in a CRM or Google Sheets.
 
-**Tools:** Make.com · AI · CRM
+Scenario
+A training company receives inquiries through a Google Form. The sales team wants every lead to be automatically analyzed before contacting them.
 
-## Overview
-Scores and qualifies incoming leads with AI and updates the CRM automatically, built in Make.com.
+Requirements
+Your Make.com scenario must:
 
-## How it works
-<!-- TODO: describe the trigger → main steps → output -->
-1. Trigger:
-2. Processing:
-3. Output:
+Trigger when a new Google Form response is submitted.
 
-## Files
-| File | Description |
-|---|---|
-| `workflow.json` | Workflow export — import into n8n via **Workflows → Import from File** |
-| `screenshot.png` | Workflow canvas |
+Extract the following lead information:
 
-## Demo
-<!-- TODO: add an unlisted YouTube link to the demo video -->
+Name
 
-## Setup
-1. Import `workflow.json`.
-2. Create your own credentials in n8n and attach them to the nodes (no credentials or API keys are stored in this repository).
-3. Activate the workflow and test it.
+Email
+
+Company
+
+Job Title
+
+Budget
+
+Message
+
+Send the lead's message to an AI model (OpenAI or another LLM) to:
+
+Summarize the inquiry
+
+Identify the lead's intent
+
+Assign a Lead Score (1–10)
+
+Recommend the next action
+
+Use a Router to categorize leads:
+
+High-quality: Score ≥ 8 → Send to Slack or Email
+
+Medium-quality: Score 5–7 → Store in CRM or Google Sheets
+
+Low-quality: Score < 5 → Archive separately
+
+Log every processed lead into Google Sheets.
+
+Add proper error handling so the scenario continues even if the AI request fails.
+
+Deliverables
+Submit the following:
+
+Make.com Scenario Blueprint (.json)
+
+Loom/Video Walkthrough (3–5 minutes)
+
+Screenshots of:
+
+Scenario Overview
+
+Successful Execution
+
+Google Sheets Output
+
+AI Response
+
+A brief explanation of:
+
+How the Router works
+
+How the Filters categorize leads
+
+How Error Handling is implemented
+
+Submission Format
+Scenario Blueprint: .json
+
+Video: Loom link
+
+Screenshots: JPG/PNG
+
+Explanation: PDF/Doc/Google Doc
