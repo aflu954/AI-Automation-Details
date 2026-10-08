@@ -1,0 +1,264 @@
+{
+  "name": "assign3",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -496
+      ],
+      "id": "a9726274-9d9c-49d2-86b3-12b2a597f55d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY",
+          "mode": "list",
+          "cachedResultName": "For n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY/edit?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -560,
+        -496
+      ],
+      "id": "89d01384-d5ba-4125-90b7-6ef49cbbd731",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "4t9bhRL52ORk8tCe",
+          "name": "Google Drive OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\nconst seen = new Set();\n\nfunction clean(str) {\n  return String(str ?? \"\").trim().replace(/\\s+/g, \" \");\n}\n\nfunction properCase(str) {\n  return clean(str)\n    .toLowerCase()\n    .replace(/\\b\\w/g, c => c.toUpperCase());\n}\n\nfunction fixEmail(email) {\n  email = clean(email).toLowerCase();\n\n  if (!email || email === \"(missing)\" || email === \"missing\") {\n    return \"missing@example.com\";\n  }\n\n  if (!email.includes(\"@\")) {\n    return email + \"@example.com\";\n  }\n\n  const parts = email.split(\"@\");\n\n  if (!parts[1].includes(\".\")) {\n    return email + \".com\";\n  }\n\n  return email;\n}\n\nfunction fixPhone(phone) {\n  phone = String(phone ?? \"\").replace(/\\D/g, \"\");\n\n  if (phone.length === 10) {\n    phone = \"0\" + phone;\n  }\n\n  return phone;\n}\n\nfunction formatDate(value) {\n\n  value = clean(value);\n\n  // DD/MM/YYYY\n  if (/^\\d{2}\\/\\d{2}\\/\\d{4}$/.test(value)) {\n    const [d, m, y] = value.split(\"/\");\n    return `${y}-${m}-${d}`;\n  }\n\n  // DD-MM-YYYY\n  if (/^\\d{2}-\\d{2}-\\d{4}$/.test(value)) {\n    const [d, m, y] = value.split(\"-\");\n    return `${y}-${m}-${d}`;\n  }\n\n  const d = new Date(value);\n\n  if (isNaN(d)) return \"\";\n\n  return d.toISOString().split(\"T\")[0];\n}\n\nlet id = 1;\n\nfor (const item of items) {\n\n  let name = properCase(item.json[\"Full Name\"]);\n  let email = fixEmail(item.json[\"Email\"]);\n  let phone = fixPhone(item.json[\"Phone\"]);\n  let city = properCase(item.json[\"City\"]);\n  let date = formatDate(item.json[\"Registration Date\"]);\n\n  // Remove only completely empty rows\n  if (!name && !email && !phone) continue;\n\n  // Duplicate check\n  const key = email + \"_\" + phone;\n\n  if (seen.has(key)) {\n    continue;\n  }\n\n  seen.add(key);\n\n  output.push({\n    json: {\n      \"Customer ID\": \"CUST-\" + String(id).padStart(4, \"0\"),\n      \"Full Name\": name,\n      \"Email\": email,\n      // Leading zero যেন Google Sheets না কাটে\n      \"Phone\": \"'\" + phone,\n      \"City\": city,\n      \"Registration Date\": date\n    }\n  });\n\n  id++;\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -496
+      ],
+      "id": "c8cc2870-5af1-47e1-9d6c-48ca3e9460c2",
+      "name": "Code in JavaScript",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY",
+          "mode": "list",
+          "cachedResultName": "For n8n",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -336,
+        -496
+      ],
+      "id": "3601ddb3-21ca-4ded-af72-69427d7b1097",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Z0eDgWyHWvpvfldm",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1AV5aF1iZ5xZ6wjPi_-H0Q4t4Vrc4luz1lJ2fGx4fnyk",
+          "mode": "list",
+          "cachedResultName": "1clean_customers.xlsx",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1AV5aF1iZ5xZ6wjPi_-H0Q4t4Vrc4luz1lJ2fGx4fnyk/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1dCZGOI07RPBf21tHNreTcQi-9MBh7g_c36QiiUXXYSY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Customer ID": "={{ $json['Customer ID'] }}",
+            "Full Name": "={{ $json['Full Name'] }}",
+            "Email": "={{ $json.Email }}",
+            "Phone": "={{ $json.Phone }}",
+            "City": "={{ $json.City }}",
+            "Registration Date": "={{ $json['Registration Date'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Customer ID",
+              "displayName": "Customer ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Registration Date",
+              "displayName": "Registration Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -608,
+        -288
+      ],
+      "id": "9a91f0f6-e545-4400-a272-288b32885791",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Z0eDgWyHWvpvfldm",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "7cdc7303-514f-4d00-ac71-1f7f83d90f21",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "06d7b2ea85a9de54abd93841f6cc6e8a818b0d065bd742326a5c2a091eb092ae"
+  },
+  "nodeGroups": [],
+  "id": "i3kKotJojvNILsjH",
+  "tags": []
+}
