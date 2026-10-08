@@ -6,7 +6,7 @@ AI automation projects built during my automation training, using **n8n**, **Mak
 |---|---|---|
 | 01 | [Telegram Travel Agent](01-telegram-travel-agent/) | n8n · Telegram · AI agent |
 | 02 | [Unsplash Image Agent](02-unsplash-image-agent/) | n8n · Unsplash API · AI agent |
-| 03 | [Assignment 3](03-assignment-3/) | n8n |
+| 03 | [Clean a Messy Excel File Using n8n](03-clean-messy-excel-file/) | n8n · Excel · data cleaning |
 | 04 | [LinkedIn Job Alert Automation](04-linkedin-job-alert/) | n8n · LinkedIn jobs |
 | 05 | [AI Travel Assistant Using MCP](05-ai-travel-assistant-mcp/) | n8n · MCP (Model Context Protocol) · AI agent |
 | 06 | [RAG-Based Email Customer Support Agent](06-rag-email-support-agent/) | n8n · RAG · vector store · email · AI agent |
