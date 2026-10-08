@@ -1,0 +1,78 @@
+{
+  "name": "mcp server",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "visiting-trigger"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        128,
+        -144
+      ],
+      "id": "de7f8ff6-e769-4737-a966-7a393829e80c",
+      "name": "MCP Server Trigger",
+      "webhookId": "74a3aaf7-dd65-49dd-a14d-dd2c134b5f74"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Get current weather information for Cox's Bazar, Bangladesh.\n\nUse this tool ONLY when the user explicitly asks for current weather, current temperature, current humidity, rain, or current weather conditions in Cox's Bazar.\n\nDo NOT use this tool for general questions, travel planning, programming, history, greetings, or any question unrelated to current weather in Cox's Bazar.\n",
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "latitude",
+              "value": "21.4272"
+            },
+            {
+              "name": "longitude",
+              "value": "92.0058"
+            },
+            {
+              "name": "current",
+              "value": "temperature_2m,relative_humidity_2m,weather_code"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        64
+      ],
+      "id": "da386d5b-78e0-4d4f-af57-7f60eebd356e",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d9c4a08c-3dd7-4378-abb2-38829715b2f6",
+  "meta": {
+    "instanceId": "db6b10a609102f9d70dc332c0cd42cf2c8694d7ad29945fe8483f0eb76c5de8a"
+  },
+  "nodeGroups": [],
+  "id": "dkWEcHCQpgq4x9rJ",
+  "tags": []
+}

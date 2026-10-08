@@ -1,0 +1,147 @@
+{
+  "name": "MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "travel-assistant",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -480,
+        -160
+      ],
+      "id": "1b457720-5389-4940-98b4-4855d7fcf247",
+      "name": "Webhook",
+      "webhookId": "ec8c9e51-f9ae-4b19-ba04-8635e80f11eb"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI Travel Assistant.\n\nThe user's message is:\n{{ $json.body.message }}\n\nRules:\n\n1. Always answer the user's actual question directly.\n2. Use your own knowledge for normal questions.\n3. Use the MCP weather tool ONLY when the user explicitly asks for current weather, current temperature, current humidity, rain, or current weather conditions in Cox's Bazar.\n4. Do NOT use the MCP weather tool for normal questions, general knowledge, travel planning, programming, history, greetings, or unrelated questions.\n5. Never invent current weather information.\n6. For travel planning requests, create a useful day-by-day travel itinerary.\n7. For a multi-day trip, provide:\n\n   * Day-by-day activities\n   * Suggested places to visit\n   * Food suggestions\n   * Basic travel tips\n   * Weather information only when current weather is requested or relevant.\n8. If the user asks for current weather in Cox's Bazar, use the MCP weather tool first and then explain the result.\n9. If the MCP weather tool is not needed, answer using the AI model's own knowledge.\n10. Never return only a tool result. Always answer the user's original question.\n11. Answer in the same language as the user's message.\n12. Do not mention internal tools, MCP, nodes, or workflow details unless the user asks.\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -176,
+        -208
+      ],
+      "id": "cf59e88b-4644-4fa0-a51e-1fce8c41fe5e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        48
+      ],
+      "id": "cf498df4-c2ec-4c5c-9849-2db9c2154a70",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "7eersqgLB1bu5AsX",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:5678/mcp/visiting-trigger",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        112
+      ],
+      "id": "af26ef70-2727-45cd-9409-208d832aa1d8",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        160,
+        -80
+      ],
+      "id": "359ce14e-73a3-4f43-97c6-42dd1594bb24",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "42944983-b879-47c4-a5c4-ac71cc27e770",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "db6b10a609102f9d70dc332c0cd42cf2c8694d7ad29945fe8483f0eb76c5de8a"
+  },
+  "nodeGroups": [],
+  "id": "vOPB85lrpAvzIBFG",
+  "tags": []
+}
