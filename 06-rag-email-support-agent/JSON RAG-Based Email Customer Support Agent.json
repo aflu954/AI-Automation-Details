@@ -1,0 +1,422 @@
+{
+  "name": "RAG-Based Email Customer Support Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        208
+      ],
+      "id": "5cce0380-b183-47ec-a14a-a6522ab3ae64",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/.n8n-files/TechNova_Solutions_Company_Knowledge_Base.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        144
+      ],
+      "id": "1e563329-b9d5-4241-bd78-be01fc4be73e",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -752,
+        -192
+      ],
+      "id": "58ed6a37-9bb8-4996-8511-f84a04cc0d1c",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        144
+      ],
+      "id": "4daa9432-4d92-4fcf-99d1-3e8721a58972",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.svgtext || $json.text || \"\";\n\nconst size = 1000;\nconst chunks = [];\n\nfor (let i = 0; i < text.length; i += size) {\n  chunks.push({\n    text: text.slice(i, i + size),\n    source: \"TechNova Knowledge Base\"\n  });\n}\n\nreturn chunks.map(chunk => ({\n  json: chunk\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        192
+      ],
+      "id": "ebf459b1-6669-4fcf-98bc-f58e0359f6e9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        192,
+        48
+      ],
+      "id": "a5838150-76ec-4fe4-8ad3-99b54daf8c39",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "MYefxIZ0LWsPNQHx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "codestral-embed-2505",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        128,
+        272
+      ],
+      "id": "57ceba9e-1101-42f6-9e72-13835475f67a",
+      "name": "Embeddings Mistral Cloud",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "JW5MQLbOrWLEiaqw",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        256
+      ],
+      "id": "6416adca-54f8-463a-bf77-61f7bc1feed4",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer email:\n{{ $('Get a message').item.json.snippet }}\n\nYou are TechNova Solutions Customer Support Agent.\n\nIMPORTANT:\nBefore answering the customer, ALWAYS use the Supabase Vector Store tool to search the TechNova Solutions Knowledge Base.\n\nFor pricing questions, search specifically for the relevant plan and pricing information.\n\nUse the retrieved knowledge as the factual source for your answer.\n\nDo not say that information is unavailable until you have searched the vector store.\n\nDo not invent information.\n\nIf the vector store truly returns no relevant information, tell the customer that human support review is required.\n\nCustomer question:\n{{ $('Get a message').item.json.snippet }}\n\nWrite only the final professional email reply.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        -192
+      ],
+      "id": "57c2be80-871d-453d-8374-21cf80ad93f0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        0
+      ],
+      "id": "78c28c88-c104-465c-b9ff-a21e8f098f6d",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "TPP8W8OF2hMPJayo",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').item.json.From.match(/<([^>]+)>/)?.[1] || $('Gmail Trigger').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        -464,
+        0
+      ],
+      "id": "8feb66d0-678d-4b21-abaf-79cb16dda0eb",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "2xvKwscJ9MY1nOlT",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -192
+      ],
+      "id": "98861354-9839-423e-b7ab-c7748fb6053c",
+      "name": "Reply to a message",
+      "webhookId": "976557fc-53dc-49ce-b10b-e0133f75fcab",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -624,
+        -192
+      ],
+      "id": "248eea47-dad2-4fbd-8521-9ae7594f85f9",
+      "name": "Get a message",
+      "webhookId": "bd63e12e-30c3-4962-8710-29a6d67ff43a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the TechNova Solutions Company Knowledge Base.\n\nUse this tool whenever the customer asks about:\n- Products\n- Pricing\n- Billing\n- Refunds\n- Password reset\n- Account support\n- Troubleshooting\n- Policies\n- Plan upgrades or downgrades\n\nReturn the most relevant information from the TechNova Knowledge Base.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        -16
+      ],
+      "id": "44f54dc2-62a7-4e4d-b351-4ceee602f2eb",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "MYefxIZ0LWsPNQHx",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Mistral Cloud": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "add3e063-3834-49fe-b942-55f9563e0ee7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2b809c5a4a6d8b3efc3b6d310586f45f9056ec6a9a3d9e69b3a9d039bcf8651c"
+  },
+  "nodeGroups": [],
+  "id": "RqH9FlQBf4yWRKsf",
+  "tags": []
+}

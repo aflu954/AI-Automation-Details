@@ -1,0 +1,531 @@
+{
+  "name": "RAG-Based Email Customer Support Agent - HITL Bonus",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        400
+      ],
+      "id": "5bfbffa2-daf2-41c9-bb3f-162da05329a0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/.n8n-files/TechNova_Solutions_Company_Knowledge_Base.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -816,
+        336
+      ],
+      "id": "3877d5d4-62cc-42bf-b156-dd7e2c94d99f",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1232,
+        0
+      ],
+      "id": "1db2ea94-a540-41eb-adce-c75113501b74",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        336
+      ],
+      "id": "e5471b95-04f7-4546-89ed-b25fd58ccd47",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.svgtext || $json.text || \"\";\n\nconst size = 1000;\nconst chunks = [];\n\nfor (let i = 0; i < text.length; i += size) {\n  chunks.push({\n    text: text.slice(i, i + size),\n    source: \"TechNova Knowledge Base\"\n  });\n}\n\nreturn chunks.map(chunk => ({\n  json: chunk\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        384
+      ],
+      "id": "9ae8d377-ac34-420e-a9b1-e4486a72d24b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        240
+      ],
+      "id": "43f77941-8851-4700-9a2a-aac52f7d36d1",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "MYefxIZ0LWsPNQHx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "codestral-embed-2505",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        464
+      ],
+      "id": "6a023957-c326-4f32-be19-da52273fe200",
+      "name": "Embeddings Mistral Cloud",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "JW5MQLbOrWLEiaqw",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        448
+      ],
+      "id": "a8a44eb7-ff7c-4660-9ea8-6eca3279ebcc",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer email:\n{{ $('Get a message').item.json.snippet }}\n\nYou are TechNova Solutions Customer Support Agent.\n\nIMPORTANT:\nBefore answering the customer, ALWAYS use the Supabase Vector Store tool to search the TechNova Solutions Knowledge Base.\n\nFor pricing questions, search specifically for the relevant plan and pricing information.\n\nUse the retrieved knowledge as the factual source for your answer.\n\nDo not say that information is unavailable until you have searched the vector store.\n\nDo not invent information.\n\nIf the vector store truly returns no relevant information, tell the customer that human support review is required.\n\nCustomer question:\n{{ $('Get a message').item.json.snippet }}\n\nWrite only the final professional email reply.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -912,
+        0
+      ],
+      "id": "70e0dd99-262b-43d3-a06b-0e1ca067b228",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        192
+      ],
+      "id": "1a0fa40a-a741-46f2-8b3c-1601f29c9fd3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "TPP8W8OF2hMPJayo",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Gmail Trigger').item.json.From.match(/<([^>]+)>/)?.[1] || $('Gmail Trigger').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        -944,
+        192
+      ],
+      "id": "b1d6ce09-9485-4614-8ff7-9992255e1a3a",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "2xvKwscJ9MY1nOlT",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -1104,
+        0
+      ],
+      "id": "e4ec54b9-c2de-44c0-b286-da89b7b8d54b",
+      "name": "Get a message",
+      "webhookId": "bd63e12e-30c3-4962-8710-29a6d67ff43a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the TechNova Solutions Company Knowledge Base.\n\nUse this tool whenever the customer asks about:\n- Products\n- Pricing\n- Billing\n- Refunds\n- Password reset\n- Account support\n- Troubleshooting\n- Policies\n- Plan upgrades or downgrades\n\nReturn the most relevant information from the TechNova Knowledge Base.",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        176
+      ],
+      "id": "7efa4ca1-935e-4d46-b92f-c37a1867a5c2",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "MYefxIZ0LWsPNQHx",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "arafatabu106@gmail.com",
+        "subject": "=Human Approval Required — Customer Support Reply",
+        "message": "=A customer email has been processed by the RAG Customer Support Agent.\n\nCustomer email:\n{{ $('Get a message').item.json.snippet }}\n\nAI-generated draft reply:\n{{ $('AI Agent').item.json.output }}\n\nPlease review the draft and choose Approve or Reject.\n\nApprove = send the reply to the customer.\nReject = do not send the reply.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "disapproveLabel": "Reject"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "48d4535d-8909-484f-9b54-cfb1d461c47e",
+      "name": "Human Approval - Review AI Reply",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -560,
+        0
+      ],
+      "webhookId": "6ff6b5fe-515e-4d7c-9a3a-e7ac732b9135",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "706032ac-ce2e-47c0-bbc3-2da3cceb16f1",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e5b2faf-a7a9-4663-91f4-7ccef80caded",
+      "name": "Approval Decision?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -320,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "message": "={{ $('AI Agent').item.json.output }}",
+        "options": {
+          "appendAttribution": false,
+          "replyToSenderOnly": true
+        }
+      },
+      "id": "81347269-f639-4828-ac13-122e3d1303f0",
+      "name": "Send Approved Reply to Customer",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -80,
+        -80
+      ],
+      "webhookId": "4c37a132-293c-4db0-86cd-f90503e54525",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "sahb3Btfqd24YpBE",
+          "name": "Gmail account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{status:'REJECTED',message:'Human reviewer rejected the AI-generated reply. No email was sent to the customer.'}}];"
+      },
+      "id": "8ee9e6ee-aa54-425e-a684-459d9413e21a",
+      "name": "Rejected - No Customer Email Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        80
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Mistral Cloud": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Human Approval - Review AI Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Approval - Review AI Reply": {
+      "main": [
+        [
+          {
+            "node": "Approval Decision?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approval Decision?": {
+      "main": [
+        [
+          {
+            "node": "Send Approved Reply to Customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected - No Customer Email Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "162de87c-f93b-4b55-b5c4-19c2d94d92d3",
+  "meta": {
+    "instanceId": "2b809c5a4a6d8b3efc3b6d310586f45f9056ec6a9a3d9e69b3a9d039bcf8651c"
+  },
+  "nodeGroups": [],
+  "id": "oUO8NOIPho9Ty7vr",
+  "tags": []
+}
