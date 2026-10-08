@@ -1,26 +1,48 @@
-# 01. Telegram Travel Agent
+Build a Telegram Customer Support Agent in n8n
 
-**Tools:** n8n · Telegram · AI agent
+Scenario
+You are working for a travel agency. Customers frequently message the company on Telegram asking about visa requirements, tour packages, office hours, pricing, and booking procedures.
 
-## Overview
-A travel assistant that users chat with on Telegram. Messages arrive through a Telegram trigger in n8n, an AI agent answers travel questions, and the reply is sent back to the same chat.
+The company wants an AI-powered Telegram agent that can instantly answer these common questions, reducing the workload on human support staff.
 
-## How it works
-<!-- TODO: describe the trigger → main steps → output -->
-1. Trigger:
-2. Processing:
-3. Output:
+Objective
+Build a simple Telegram AI agent in n8n that acts as a customer support representative.
 
-## Files
-| File | Description |
-|---|---|
-| `workflow.json` | Workflow export — import into n8n via **Workflows → Import from File** |
-| `screenshot.png` | Workflow canvas |
+Requirements
 
-## Demo
-<!-- TODO: add an unlisted YouTube link to the demo video -->
+Create a Telegram bot and connect it to n8n.
 
-## Setup
-1. Import `workflow.json`.
-2. Create your own credentials in n8n and attach them to the nodes (no credentials or API keys are stored in this repository).
-3. Activate the workflow and test it.
+Use a Telegram Trigger node to receive incoming messages.
+
+Connect the trigger to an AI model.
+
+Write a detailed system prompt that makes the AI behave like a professional customer support executive.
+
+The AI should:
+
+Answer customer questions politely and professionally.
+
+Stay within the travel agency context.
+
+Ask follow-up questions if customer information is missing.
+
+Decline to answer unrelated questions and redirect the conversation back to travel services.
+
+Send the AI's response back to the customer through Telegram.
+
+Constraints
+Keep the workflow simple.
+
+Do not use databases, memory, APIs, or tools.
+
+The entire behavior of the agent should be controlled through prompt engineering.
+
+Deliverables
+A working n8n workflow.
+
+The system prompt you designed.
+
+An exported workflow JSON.
+
+Test the bot with at least five different customer queries and include the responses.
+
